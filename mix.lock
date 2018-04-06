@@ -1,3 +1,5 @@
 %{
+  "pane": {:hex, :pane, "0.3.0", "7b028e2aa8f004b62a965de983d824ad20d94f3c9c82b2bb4a9cdcebeb9e7060", [:mix], [], "hexpm"},
   "poison": {:hex, :poison, "3.1.0", "d9eb636610e096f86f25d9a46f35a9facac35609a7591b3be3326e99a0484665", [:mix], [], "hexpm"},
+  "scribe": {:hex, :scribe, "0.4.1", "4bf5395fb882995f705172b817b9a4ccae6ac83f9918fdedb6a2b9dafb57ec5f", [:mix], [{:pane, "~> 0.1", [hex: :pane, repo: "hexpm", optional: false]}], "hexpm"},
 }

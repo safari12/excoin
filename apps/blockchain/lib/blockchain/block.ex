@@ -47,20 +47,15 @@ defmodule Blockchain.Block do
       data: data
     }
 
-    %{b | hash: compute_hash(b)}
+    hash = compute_hash(b)
+    %{b | hash: hash}
   end
 
   @spec compute_hash(t) :: String.t()
-  def compute_hash(%Block{
-    index: i,
-    prev_hash: h,
-    timestamp: ts,
-    data: d,
-    nonce: n
-  }) do
-    "#{i}#{h}#{ts}#{BlockData.hash(d)}#{n}"
+  def compute_hash(%Block{index: i, prev_hash: h, timestamp: ts, data: data, nonce: n}) do
+    "#{i}#{h}#{ts}#{BlockData.hash(data)}#{n}"
     |> Crypto.hash(:sha256)
     |> Base.encode16()
-  end
+end
 
 end

@@ -1,15 +1,24 @@
 defmodule Blockchain.ProofOfWork do
   @moduledoc """
   ProofOfWork contains functions to perform and verify proof-of-work
+  https://en.bitcoin.it/wiki/Proof_of_work
   """
 
   alias Blockchain.Block
+
+  # compute computes the proof of work of a given block
+  # and returns a new block with the `nonce` field set
+  # so its hash satisfies the PoW. Can take a while according
+  # to the difficulty set in `pow_difficulty` config
 
   @spec compute(Block.t() | Block.t(), integer) :: Block.t()
   def compute(%Block{} = b, target \\ target()) do
     {hash, nonce} = proof_of_work(b, target)
     %{b | hash: hash, nonce: nonce}
   end
+
+  # verify that a givens hash satisfy the blockchain
+  # proof-of-work
 
   @spec verify(String.t() | String.t(), integer) :: boolean
   def verify(hash), do: verify(hash, target())
