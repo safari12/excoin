@@ -7,7 +7,7 @@ defmodule Blockchain.Block do
 
   @type t :: %__MODULE__{
     index: integer,
-    previous_hash: String.t(),
+    prev_hash: String.t(),
     timestamp: integer,
     data: BlockData.t(),
     nonce: integer | nil,
@@ -58,7 +58,7 @@ defmodule Blockchain.Block do
     data: d,
     nonce: n
   }) do
-    "#{i}#{h}#{ts}#{BlockData.hash(data)}#{n}"
+    "#{i}#{h}#{ts}#{BlockData.hash(d)}#{n}"
     |> Crypto.hash(:sha256)
     |> Base.encode16()
   end
