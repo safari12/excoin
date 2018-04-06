@@ -28,3 +28,11 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
+
+config :blockchain,
+  proof_of_work: Blockchain.ProofOfWork
+
+config :blockchain, Blockchain.ProofOfWork,
+  target: "00000C6D750EBFA67C0000000000000000000000000000000000000000000000"
+
+import_config "#{Mix.env()}.exs"
