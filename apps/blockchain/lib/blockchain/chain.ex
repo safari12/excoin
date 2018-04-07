@@ -26,6 +26,11 @@ defmodule Blockchain.Chain do
     GenServer.call(__MODULE__, :all_blocks)
   end
 
+  @spec last_blocks(integer) :: [Block.t()]
+  def last_blocks(n) do
+    GenServer.call(__MODULE__, {:last_blocks, n})
+  end
+
   @spec add_block(Block.t()) :: :ok | {:error, atom()}
   def add_block(%Block{} = b) do
     GenServer.call(__MODULE__, {:add_block, b})
@@ -43,6 +48,10 @@ defmodule Blockchain.Chain do
 
   def handle_call(:all_blocks, _from, chain) do
     {:reply, chain, chain}
+  end
+
+  def handle_call({:last_blocks, n}, _from, chain) do
+    {:reply, Enum.take(chain, -n), chain}
   end
 
   def handle_call({:add_block, %Block{} = b}, _from, chain) do

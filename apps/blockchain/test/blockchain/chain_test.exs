@@ -19,6 +19,13 @@ defmodule Blockchain.ChainTest do
     assert :ok = Chain.add_block(b)
   end
 
+  test "should get 10 last blocks" do
+    create_blockchain(20)
+
+    assert Enum.take(Chain.all_blocks, -10) == Chain.last_blocks(10)
+    assert Chain.all_blocks == Chain.last_blocks(50)
+  end
+
   test "should fail if block is invalid" do
     valid_block =
       "some data"

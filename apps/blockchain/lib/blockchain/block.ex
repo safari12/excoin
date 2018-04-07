@@ -11,7 +11,8 @@ defmodule Blockchain.Block do
     timestamp: integer,
     data: BlockData.t(),
     nonce: integer | nil,
-    hash: String.t() | nil
+    hash: String.t() | nil,
+    difficulty: integer
   }
 
   @derive [Poison.Encoder]
@@ -21,7 +22,8 @@ defmodule Blockchain.Block do
     :timestamp,
     :data,
     :nonce,
-    :hash
+    :hash,
+    :difficulty
   ]
 
   @spec genesis_block() :: t
@@ -32,7 +34,8 @@ defmodule Blockchain.Block do
       timestamp: 1_465_154_705,
       data: "genesis block",
       nonce: 35_679,
-      hash: "0000DA3553676AC53CC20564D8E956D03A08F7747823439FDE74ABF8E7EADF60"
+      hash: "0000DA3553676AC53CC20564D8E956D03A08F7747823439FDE74ABF8E7EADF60",
+      difficulty: 1
     }
   end
 

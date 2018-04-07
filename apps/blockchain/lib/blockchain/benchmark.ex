@@ -126,7 +126,7 @@ defmodule Blockchain.Difficulty do
   end
 
   @spec format_base16(integer) :: String.t()
-  defp format_base16(n) do
+  def format_base16(n) do
     hex_length = div(@bit_length, 4)
     to_string(:io_lib.format("~#{hex_length}.16.0B", [n]))
   end

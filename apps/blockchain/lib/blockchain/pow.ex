@@ -4,7 +4,7 @@ defmodule Blockchain.ProofOfWork do
   https://en.bitcoin.it/wiki/Proof_of_work
   """
 
-  alias Blockchain.Block
+  alias Blockchain.{Block}
 
   # compute computes the proof of work of a given block
   # and returns a new block with the `nonce` field set
@@ -13,8 +13,8 @@ defmodule Blockchain.ProofOfWork do
 
   @spec compute(Block.t() | Block.t(), integer) :: Block.t()
   def compute(%Block{} = b, target \\ target()) do
-    {hash, nonce} = proof_of_work(b, target)
-    %{b | hash: hash, nonce: nonce}
+    {hash, nonce, diff} = proof_of_work(b, target)
+    %{b | hash: hash, nonce: nonce, difficulty: diff}
   end
 
   # verify that a givens hash satisfy the blockchain
@@ -41,7 +41,7 @@ defmodule Blockchain.ProofOfWork do
     hash = Block.compute_hash(b)
 
     case verify(hash, target) do
-      true -> {hash, nonce}
+      true -> {hash, nonce, 1}
       _ -> proof_of_work(block, target, nonce + 1)
     end
   end
