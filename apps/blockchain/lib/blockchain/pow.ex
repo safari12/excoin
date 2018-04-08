@@ -44,9 +44,9 @@ defmodule Blockchain.ProofOfWork do
     GenServer.call(__MODULE__, :current_difficulty)
   end
 
-  @spec change_difficulty(number) :: {:ok, number}
-  def change_difficulty(d) do
-    GenServer.call(__MODULE__, {:change_difficulty, d})
+  @spec adjust_difficulty(number) :: {:ok, number}
+  def adjust_difficulty(change) do
+    GenServer.call(__MODULE__, {:adjust_difficulty, change})
   end
 
   @spec target() :: integer
@@ -56,8 +56,8 @@ defmodule Blockchain.ProofOfWork do
     target
   end
 
-  @spec calculate_difficulty([Block.t()], integer, number) :: number
-  def calculate_difficulty(timestamps, expected_time, take_percent) do
+  @spec difficulty_change([Block.t()], integer, number) :: number
+  def difficulty_change(timestamps, expected_time, take_percent) do
     timestamps = timestamps
       |> Util.adj_diff_list
       |> Enum.sort(&(&1 >= &2))
@@ -72,11 +72,7 @@ defmodule Blockchain.ProofOfWork do
       |> Enum.take(size)
       |> Enum.sum
 
-    new_diff = current_difficulty()
-      |> (&(&1 - (&1 - expected_time / time))).()
-      |> change_difficulty()
-
-    new_diff
+    (expected_time / time)
   end
 
   @spec proof_of_work(Block.t(), integer, integer) :: {String.t(), integer}
@@ -94,7 +90,10 @@ defmodule Blockchain.ProofOfWork do
     {:reply, pow[:difficulty], pow}
   end
 
-  def handle_call({:change_difficulty, d}, _from, pow) do
+  def handle_call({:adjust_difficulty, change}, _from, pow) do
+    d = pow[:difficulty]
+      |> (&(&1 - (&1 - change))).()
+
     {:reply, d, Map.put(pow, :difficulty, d)}
   end
 end
