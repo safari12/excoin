@@ -3,7 +3,8 @@ defmodule Blockchain.Application do
 
   def start(_type, _args) do
     children = [
-      {Blockchain.Chain, []}
+      {Blockchain.Chain, []},
+      {Blockchain.ProofOfWork, nil}
     ]
 
     opts = [
