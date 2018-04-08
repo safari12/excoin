@@ -1,6 +1,5 @@
 defmodule Blockchain.ProofOfWorkTest do
   use ExUnit.Case, async: true
-  import Blockchain.Fixtures
 
   alias Blockchain.{Block, ProofOfWork}
 
@@ -22,29 +21,39 @@ defmodule Blockchain.ProofOfWorkTest do
     refute ProofOfWork.verify(hash, n - 1)
   end
 
-  test "calculate difficulty" do
-    expected_time = 100
+  test "calculate increase in difficulty" do
+    timestamps = [10, 16, 11, 10, 3, 18, 25, 2]
+    expected_time = 60
     start_difficulty = 1
-    number_of_blocks = 25
-    mine_time = 50
+    mine_time = 36
     take_percent = 1
-    decr_timestamp_unit = mine_time / number_of_blocks
+
+    ProofOfWork.change_difficulty(start_difficulty)
 
     expected_diff =
        start_difficulty - (start_difficulty - (expected_time / mine_time))
 
-    actual_diff = mock_blockchain(number_of_blocks)
-      |> modify_timestamps(expected_time, decr_timestamp_unit)
+    actual_diff = timestamps
       |> ProofOfWork.calculate_difficulty(expected_time, take_percent)
 
     assert expected_diff == actual_diff
   end
 
-  defp modify_timestamps(blocks, last_timestamp, decr_timestamp_unit) do
-    {blocks, _} = Enum.map_reduce(blocks, last_timestamp, fn(x, acc) ->
-      {%{x | timestamp: acc}, acc - decr_timestamp_unit}
-    end)
+  test "calculate decrease in difficulty" do
+    timestamps = [10, 16, 11, 10, 3, 18, 25, 2, 60, 10]
+    expected_time = 60
+    start_difficulty = 1
+    mine_time = 86
+    take_percent = 1
 
-    blocks
+    ProofOfWork.change_difficulty(start_difficulty)
+
+    expected_diff =
+       start_difficulty - (start_difficulty - (expected_time / mine_time))
+
+    actual_diff = timestamps
+      |> ProofOfWork.calculate_difficulty(expected_time, take_percent)
+
+    assert expected_diff == actual_diff
   end
 end

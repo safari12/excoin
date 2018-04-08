@@ -57,9 +57,8 @@ defmodule Blockchain.ProofOfWork do
   end
 
   @spec calculate_difficulty([Block.t()], integer, number) :: number
-  def calculate_difficulty(blocks, expected_mine_window, take_percent) do
-    timestamps = blocks
-      |> Enum.map(&(&1.timestamp))
+  def calculate_difficulty(timestamps, expected_time, take_percent) do
+    timestamps = timestamps
       |> Util.adj_diff_list
       |> Enum.sort(&(&1 >= &2))
       |> Enum.filter(&(&1 > 0))
@@ -74,7 +73,7 @@ defmodule Blockchain.ProofOfWork do
       |> Enum.sum
 
     new_diff = current_difficulty()
-      |> (&(&1 - (&1 - expected_mine_window / time))).()
+      |> (&(&1 - (&1 - expected_time / time))).()
       |> change_difficulty()
 
     new_diff
