@@ -27,7 +27,7 @@ defmodule Blockchain.ProofOfWorkTest do
     mine_time = 36
     take_percent = 1
 
-    expected_diff_change = (expected_time / mine_time)
+    expected_diff_change = (expected_time / mine_time) - 1
 
     actual_diff_change = timestamps
       |> ProofOfWork.difficulty_change(expected_time, take_percent)

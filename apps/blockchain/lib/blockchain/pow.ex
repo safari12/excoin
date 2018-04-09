@@ -72,7 +72,7 @@ defmodule Blockchain.ProofOfWork do
       |> Enum.take(size)
       |> Enum.sum
 
-    (expected_time / time)
+    (expected_time / time) - 1
   end
 
   @spec proof_of_work(Block.t(), integer, integer) :: {String.t(), integer}
