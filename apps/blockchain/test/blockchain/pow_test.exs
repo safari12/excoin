@@ -21,7 +21,7 @@ defmodule Blockchain.ProofOfWorkTest do
     refute ProofOfWork.verify(hash, n - 1)
   end
 
-  test "calculate change in difficulty" do
+  test "calculate change for difficulty" do
     timestamps = [10, 16, 11, 10, 3, 18, 25, 2]
     expected_time = 60
     mine_time = 36
@@ -30,8 +30,24 @@ defmodule Blockchain.ProofOfWorkTest do
     expected_diff_change = (expected_time / mine_time) - 1
 
     actual_diff_change = timestamps
-      |> ProofOfWork.difficulty_change(expected_time, take_percent)
+      |> ProofOfWork.calculate_difficulty_change(expected_time, take_percent)
 
     assert expected_diff_change == actual_diff_change
+  end
+
+  test "calculate difficulty from change" do
+    current_diff = 1
+
+    change = -0.4
+    expected_diff = 0.6
+    actual_diff = ProofOfWork.calculate_difficulty(change, current_diff)
+
+    assert expected_diff == actual_diff
+
+    change = 1.5
+    expected_diff = 2.5
+    actual_diff = ProofOfWork.calculate_difficulty(change, current_diff)
+
+    assert expected_diff == actual_diff
   end
 end
