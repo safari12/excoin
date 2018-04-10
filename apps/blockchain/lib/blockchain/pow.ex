@@ -21,12 +21,17 @@ defmodule Blockchain.ProofOfWork do
     target = diff
       |> calculate_target()
 
-    {hash, nonce} = proof_of_work(b, target)
+    {hash, nonce} = proof_of_work(b, target, diff)
     %{b | hash: hash, nonce: nonce, difficulty: diff}
   end
 
   # verify that a givens hash satisfy the blockchain
   # proof-of-work
+
+  @spec verify(Block.t()) :: boolean
+  def verify(%Block{} = b) do
+    verify(b.hash, calculate_target(b.difficulty))
+  end
 
   @spec verify(String.t() | String.t(), integer) :: boolean
   def verify(hash, target) do
@@ -64,7 +69,11 @@ defmodule Blockchain.ProofOfWork do
       |> Enum.take(size)
       |> Enum.sum
 
-    (expected_time / time) - 1
+    try do
+      (expected_time / time) - 1
+    rescue
+      ArithmeticError -> 0
+    end
   end
 
   @spec calculate_difficulty(number, number) :: number
@@ -72,9 +81,9 @@ defmodule Blockchain.ProofOfWork do
     current_difficulty + (current_difficulty * change)
   end
 
-  @spec proof_of_work(Block.t(), integer, integer) :: {String.t(), integer}
-  defp proof_of_work(%Block{} = block, target, nonce \\ 0) do
-    b = %{block | nonce: nonce}
+  @spec proof_of_work(Block.t(), integer, number, integer) :: {String.t(), integer}
+  defp proof_of_work(%Block{} = block, target, difficulty, nonce \\ 0) do
+    b = %{block | nonce: nonce | difficulty: difficulty}
     hash = Block.compute_hash(b)
 
     case verify(hash, target) do
