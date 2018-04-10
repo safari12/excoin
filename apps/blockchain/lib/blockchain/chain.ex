@@ -82,7 +82,7 @@ defmodule Blockchain.Chain do
         {:error, :invalid_block_index}
       prev_block.hash != block.prev_hash ->
         {:error, :invalid_block_previous_hash}
-      proof_of_work().verify(block.hash) == false ->
+      proof_of_work().verify(block) == false ->
         {:error, :proof_of_work_not_verified}
       block.hash != Block.compute_hash(block) ->
         {:error, :invalid_block_hash}
