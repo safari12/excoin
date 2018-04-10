@@ -4,27 +4,24 @@ defmodule Blockchain.ProofOfWork do
   https://en.bitcoin.it/wiki/Proof_of_work
   """
 
-  use GenServer
-
-  alias Blockchain.{Block, Util}
-
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, nil, name: __MODULE__)
-  end
-
-  def init(_) do
-    difficulty = Application.get_env(:blockchain, __MODULE__)[:difficulty]
-    {:ok, %{difficulty: difficulty}}
-  end
+  alias Blockchain.{Block, Util, Chain}
 
   # compute computes the proof of work of a given block
   # and returns a new block with the `nonce` field set
   # so its hash satisfies the PoW. Can take a while according
   # to the difficulty set in `pow_difficulty` config
 
-  @spec compute(Block.t() | Block.t(), integer) :: Block.t()
-  def compute(%Block{} = b, target \\ target()) do
-    {hash, nonce, diff} = proof_of_work(b, target)
+  @spec compute(Block.t() | Block.t()) :: Block.t()
+  def compute(%Block{} = b) do
+    diff = Chain.last_blocks(700)
+      |> Enum.map(&(&1.timestamp))
+      |> calculate_difficulty_change(120, 0.8)
+      |> calculate_difficulty(current_difficulty())
+
+    target = diff
+      |> calculate_target()
+
+    {hash, nonce} = proof_of_work(b, target)
     %{b | hash: hash, nonce: nonce, difficulty: diff}
   end
 
@@ -32,8 +29,6 @@ defmodule Blockchain.ProofOfWork do
   # proof-of-work
 
   @spec verify(String.t() | String.t(), integer) :: boolean
-  def verify(hash), do: verify(hash, target())
-
   def verify(hash, target) do
     {n, _} = Integer.parse(hash, 16)
     n < target
@@ -41,19 +36,16 @@ defmodule Blockchain.ProofOfWork do
 
   @spec current_difficulty() :: number
   def current_difficulty() do
-    GenServer.call(__MODULE__, :current_difficulty)
+    Application.get_env(
+      :blockchain,
+      __MODULE__,
+      %{difficulty: Chain.latest_block().difficulty}
+    )[:difficulty]
   end
 
-  @spec adjust_difficulty(number) :: {:ok, number}
-  def adjust_difficulty(change) do
-    GenServer.call(__MODULE__, {:adjust_difficulty, change})
-  end
-
-  @spec target() :: integer
-  defp target do
-    hex_target = Application.get_env(:blockchain, __MODULE__)[:target]
-    {target, _} = Integer.parse(hex_target, 16)
-    target
+  @spec calculate_target(number) :: integer
+  def calculate_target(difficulty) do
+    round(:math.pow(16, 63 - difficulty))
   end
 
   @spec calculate_difficulty_change([Block.t()], integer, number) :: number
@@ -86,19 +78,8 @@ defmodule Blockchain.ProofOfWork do
     hash = Block.compute_hash(b)
 
     case verify(hash, target) do
-      true -> {hash, nonce, 1}
+      true -> {hash, nonce}
       _ -> proof_of_work(block, target, nonce + 1)
     end
-  end
-
-  def handle_call(:current_difficulty, _from, pow) do
-    {:reply, pow[:difficulty], pow}
-  end
-
-  def handle_call({:adjust_difficulty, change}, _from, pow) do
-    d = pow[:difficulty]
-      |> (&(&1 - (&1 - change))).()
-
-    {:reply, d, Map.put(pow, :difficulty, d)}
   end
 end

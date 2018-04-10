@@ -32,8 +32,4 @@ use Mix.Config
 config :blockchain,
   proof_of_work: Blockchain.ProofOfWork
 
-config :blockchain, Blockchain.ProofOfWork,
-  target: "00000C6D750EBFA67C0000000000000000000000000000000000000000000000",
-  difficulty: 1
-
 import_config "#{Mix.env()}.exs"
