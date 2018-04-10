@@ -10,7 +10,7 @@ defmodule Blockchain.ProofOfWorkTest do
       |> ProofOfWork.compute
 
     assert b.nonce != nil
-    assert ProofOfWork.verify(b.hash)
+    assert ProofOfWork.verify(b)
   end
 
   test "verify" do
