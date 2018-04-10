@@ -11,5 +11,7 @@ defmodule Blockchain.BlockTest do
     assert b.prev_hash == latest_block.hash
     assert b.data == data
     assert b.index == latest_block.index + 1
+    assert b.difficulty == nil
+    assert b.timestamp > latest_block.timestamp
   end
 end

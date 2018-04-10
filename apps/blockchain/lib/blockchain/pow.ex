@@ -83,7 +83,7 @@ defmodule Blockchain.ProofOfWork do
 
   @spec proof_of_work(Block.t(), integer, number, integer) :: {String.t(), integer}
   defp proof_of_work(%Block{} = block, target, difficulty, nonce \\ 0) do
-    b = %{block | nonce: nonce | difficulty: difficulty}
+    b = %{block | nonce: nonce, difficulty: difficulty}
     hash = Block.compute_hash(b)
 
     case verify(hash, target) do

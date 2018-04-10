@@ -12,7 +12,7 @@ defmodule Blockchain.Block do
     data: BlockData.t(),
     nonce: integer | nil,
     hash: String.t() | nil,
-    difficulty: integer
+    difficulty: number
   }
 
   @derive [Poison.Encoder]
