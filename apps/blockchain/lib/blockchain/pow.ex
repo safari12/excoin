@@ -6,7 +6,6 @@ defmodule Blockchain.ProofOfWork do
 
   alias Blockchain.{Block, Util, Chain}
 
-  # @target_max round(:math.pow(16, 62)) - 1
   @target_max Application.get_env(:blockchain, __MODULE__)[:target_max]
   @window Application.get_env(:blockchain, __MODULE__)[:window]
   @expected_window_time Application.get_env(:blockchain, __MODULE__)[:expected_window_time]
@@ -51,7 +50,8 @@ defmodule Blockchain.ProofOfWork do
 
   @spec calculate_target(number) :: integer
   def calculate_target(difficulty) do
-    (@target_max / difficulty)
+    {t, _} = Integer.parse(@target_max, 16)
+    (t / difficulty)
   end
 
   @spec calculate_difficulty_change([Block.t()], integer, number) :: number
@@ -93,7 +93,7 @@ defmodule Blockchain.ProofOfWork do
 
     case verify(hash, target) do
       true -> {hash, nonce}
-      _ -> proof_of_work(block, target, nonce + 1)
+      _ -> proof_of_work(block, target, difficulty, nonce + 1)
     end
   end
 end
