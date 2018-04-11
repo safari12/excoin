@@ -13,5 +13,6 @@ defmodule Blockchain.BlockTest do
     assert b.index == latest_block.index + 1
     assert b.difficulty == nil
     assert b.timestamp > latest_block.timestamp
+    assert byte_size(b.hash) == 64
   end
 end
