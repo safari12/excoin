@@ -6,6 +6,11 @@ defmodule Blockchain.ProofOfWork do
 
   alias Blockchain.{Block, Util, Chain}
 
+  # @target_max round(:math.pow(16, 62)) - 1
+  @target_max Application.get_env(:blockchain, __MODULE__)[:target_max]
+  @window Application.get_env(:blockchain, __MODULE__)[:window]
+  @expected_window_time Application.get_env(:blockchain, __MODULE__)[:expected_window_time]
+
   # compute computes the proof of work of a given block
   # and returns a new block with the `nonce` field set
   # so its hash satisfies the PoW. Can take a while according
@@ -13,9 +18,9 @@ defmodule Blockchain.ProofOfWork do
 
   @spec compute(Block.t() | Block.t()) :: Block.t()
   def compute(%Block{} = b) do
-    diff = Chain.last_blocks(700)
+    diff = Chain.last_blocks(@window)
       |> Enum.map(&(&1.timestamp))
-      |> calculate_difficulty_change(120, 0.8)
+      |> calculate_difficulty_change(@expected_window_time)
       |> calculate_difficulty(current_difficulty())
 
     target = diff
@@ -41,20 +46,16 @@ defmodule Blockchain.ProofOfWork do
 
   @spec current_difficulty() :: number
   def current_difficulty() do
-    Application.get_env(
-      :blockchain,
-      __MODULE__,
-      %{difficulty: Chain.latest_block().difficulty}
-    )[:difficulty]
+    Chain.latest_block().difficulty
   end
 
   @spec calculate_target(number) :: integer
   def calculate_target(difficulty) do
-    round(:math.pow(16, 63 - difficulty))
+    (@target_max / difficulty)
   end
 
   @spec calculate_difficulty_change([Block.t()], integer, number) :: number
-  def calculate_difficulty_change(timestamps, expected_time, take_percent) do
+  def calculate_difficulty_change(timestamps, expected_time, take_percent \\ 0.8) do
     timestamps = timestamps
       |> Util.adj_diff_list
       |> Enum.sort(&(&1 >= &2))
@@ -70,15 +71,19 @@ defmodule Blockchain.ProofOfWork do
       |> Enum.sum
 
     try do
-      (expected_time / time) - 1
+      result = (expected_time / time)
+      cond do
+        (result <= 4) && (result >= 0.25) -> result
+        true -> 1
+      end
     rescue
-      ArithmeticError -> 0
+      ArithmeticError -> 1
     end
   end
 
   @spec calculate_difficulty(number, number) :: number
-  def calculate_difficulty(change, current_difficulty) do
-    current_difficulty + (current_difficulty * change)
+  def calculate_difficulty(change, prev_difficulty) do
+    prev_difficulty * change
   end
 
   @spec proof_of_work(Block.t(), integer, number, integer) :: {String.t(), integer}
