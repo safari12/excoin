@@ -32,4 +32,9 @@ use Mix.Config
 config :blockchain,
   proof_of_work: Blockchain.ProofOfWork
 
+config :blockchain, Blockchain.ProofOfWork,
+  outlier_cutt_off: 20,
+  window: 700,
+  expected_window_time: 84000
+
 import_config "#{Mix.env()}.exs"

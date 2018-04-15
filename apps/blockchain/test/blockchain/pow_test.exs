@@ -8,7 +8,7 @@ defmodule Blockchain.ProofOfWorkTest do
       "some data"
       |> Block.generate_next_block
       |> ProofOfWork.compute
-    
+
     assert b.nonce != nil
     assert String.starts_with?(b.hash, "0")
     assert ProofOfWork.verify(b)
@@ -34,21 +34,5 @@ defmodule Blockchain.ProofOfWorkTest do
       |> ProofOfWork.calculate_difficulty_change(expected_time, take_percent)
 
     assert expected_diff_change == actual_diff_change
-  end
-
-  test "calculate difficulty from change" do
-    current_diff = 1
-
-    change = 0.4
-    expected_diff = current_diff * change
-    actual_diff = ProofOfWork.calculate_difficulty(change, current_diff)
-
-    assert expected_diff == actual_diff
-
-    change = 1.5
-    expected_diff = current_diff * change
-    actual_diff = ProofOfWork.calculate_difficulty(change, current_diff)
-
-    assert expected_diff == actual_diff
   end
 end

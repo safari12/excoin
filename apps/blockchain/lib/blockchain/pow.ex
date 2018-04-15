@@ -9,6 +9,7 @@ defmodule Blockchain.ProofOfWork do
   @target_max Application.get_env(:blockchain, __MODULE__)[:target_max]
   @window Application.get_env(:blockchain, __MODULE__)[:window]
   @expected_window_time Application.get_env(:blockchain, __MODULE__)[:expected_window_time]
+  @outlier_cutt_off Application.get_env(:blockchain, __MODULE__)[:outlier_cutt_off]
 
   # compute computes the proof of work of a given block
   # and returns a new block with the `nonce` field set
@@ -19,8 +20,8 @@ defmodule Blockchain.ProofOfWork do
   def compute(%Block{} = b) do
     diff = Chain.last_blocks(@window)
       |> Enum.map(&(&1.timestamp))
-      |> calculate_difficulty_change(@expected_window_time)
-      |> calculate_difficulty(current_difficulty())
+      |> calculate_difficulty_change(@expected_window_time, @outlier_cutt_off)
+      |> Kernel.*(current_difficulty())
 
     target = diff
       |> calculate_target()
@@ -55,7 +56,7 @@ defmodule Blockchain.ProofOfWork do
   end
 
   @spec calculate_difficulty_change([Block.t()], integer, number) :: number
-  def calculate_difficulty_change(timestamps, expected_time, take_percent \\ 0.8) do
+  def calculate_difficulty_change(timestamps, expected_time, outlier_cutt_off) do
     timestamps = timestamps
       |> Util.adj_diff_list
       |> Enum.sort(&(&1 >= &2))
@@ -63,7 +64,7 @@ defmodule Blockchain.ProofOfWork do
 
     size = timestamps
       |> Enum.count
-      |> Kernel.*(take_percent)
+      |> Kernel.*((100 - outlier_cutt_off) / 100)
       |> round
 
     time = timestamps
@@ -79,11 +80,6 @@ defmodule Blockchain.ProofOfWork do
     rescue
       ArithmeticError -> 1
     end
-  end
-
-  @spec calculate_difficulty(number, number) :: number
-  def calculate_difficulty(change, prev_difficulty) do
-    prev_difficulty * change
   end
 
   @spec proof_of_work(Block.t(), integer, number, integer) :: {String.t(), integer}
