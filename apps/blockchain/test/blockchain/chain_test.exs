@@ -25,26 +25,29 @@ defmodule Blockchain.ChainTest do
     assert Enum.take(Chain.all_blocks, -10) == Chain.last_blocks(10)
     assert Chain.all_blocks == Chain.last_blocks(50)
   end
-  #
-  # test "should fail if block is invalid" do
-  #   valid_block =
-  #     "some data"
-  #     |> Block.generate_next_block
-  #     |> proof_of_work().compute
-  #
-  #   invalid_block = %{valid_block | index: 1000}
-  #   assert {:error, :invalid_block_index} = Chain.add_block(invalid_block)
-  #
-  #   invalid_block = %{valid_block | prev_hash: "not the good previous hash"}
-  #   assert {:error, :invalid_block_previous_hash} = Chain.add_block(invalid_block)
-  #
-  #   invalid_block = %{valid_block | hash: "0#{valid_block.hash}"}
-  #   assert {:error, :invalid_block_hash} = Chain.add_block(invalid_block)
-  #
-  #   invalid_hash = "F#{String.slice(valid_block.hash, 1..-1)}"
-  #   invalid_block = %{valid_block | hash: invalid_hash}
-  #   assert {:error, :proof_of_work_not_verified} = Chain.add_block(invalid_block)
-  # end
+
+  test "should fail if block is invalid" do
+    valid_block =
+      "some data"
+      |> Block.generate_next_block
+      |> proof_of_work().compute
+
+    invalid_block = %{valid_block | index: 1000}
+    assert {:error, :invalid_block_index} = Chain.add_block(invalid_block)
+
+    invalid_block = %{valid_block | prev_hash: "not the good previous hash"}
+    assert {:error, :invalid_block_previous_hash} = Chain.add_block(invalid_block)
+
+    invalid_block = %{valid_block | hash: "0#{valid_block.hash}"}
+    assert {:error, :invalid_block_hash} = Chain.add_block(invalid_block)
+
+    invalid_block = %{valid_block | timestamp: 0}
+    assert {:error, :invalid_block_timestamp} = Chain.add_block(invalid_block) 
+
+    invalid_hash = "F#{String.slice(valid_block.hash, 1..-1)}"
+    invalid_block = %{valid_block | hash: invalid_hash}
+    assert {:error, :proof_of_work_not_verified} = Chain.add_block(invalid_block)
+  end
   #
   # test "validate a blockchain" do
   #   invalid_genesis_block = %Block{
