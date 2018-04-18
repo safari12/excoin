@@ -77,8 +77,8 @@ defmodule Blockchain.P2P.Payload do
       typed_data = typed_data(data)
 
       %{struct | data: typed_data}
-      |> Map.from_struct
-      |> Poison.Encoder.Map.encode(options)
+        |> Map.from_struct
+        |> Poison.Encoder.Map.encode(options)
     end
 
     defp typed_data(%module{} = struct), do: %TypedData{type: module, data: struct}
