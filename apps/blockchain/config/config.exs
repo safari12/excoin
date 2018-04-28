@@ -30,6 +30,7 @@ use Mix.Config
 #     import_config "#{Mix.env}.exs"
 
 config :blockchain,
+  port: String.to_integer(System.get_env("P2P_PORT") || "5000"),
   proof_of_work: Blockchain.ProofOfWork
 
 config :blockchain, Blockchain.ProofOfWork,
