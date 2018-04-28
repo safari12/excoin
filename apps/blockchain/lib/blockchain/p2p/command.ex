@@ -5,7 +5,7 @@ defmodule Blockchain.P2P.Command do
   TCP server commands
   """
 
-  alias Blockchain.{Chain, Block}
+  alias Blockchain.{Chain, Block, Mempool}
   alias Blockchain.P2P.Payload, as: Payload
 
   @type return :: :ok | {:ok, String.t()} | {:error, atom()}
@@ -71,5 +71,63 @@ defmodule Blockchain.P2P.Command do
         Logger.info "replacing my chain"
         Chain.replace_chain(received_chain)
     end
+  end
+
+  defp handle_payload(%Payload{type: "mining_request", data: data}) do
+    case Mempool.add(data) do
+      :ok ->
+        Logger.info "received data to mine"
+        broadcast_mining_request(data)
+        :ok
+      {:error, _reason} ->
+        # block is already in mining pool, or BlockData.verify failed
+        :ok
+    end
+  end
+
+  defp handle_payload(_) do
+    {:error, :unknown_type}
+  end
+
+  @spec add_block(Block.t()) :: :ok
+  defp add_block(%Block{} = block) do
+    # notify mining pool to stop working on this block
+    with :ok <- Chain.add_block(block),
+         :ok <- Mempool.block_mined(block) do
+      broadcast_new_block(block)
+    else
+      {:error, _reason} ->
+        # block is invalid just ignoring it
+        :ok
+    end
+  end
+
+  @spec broadcast_new_block(Block.t()) :: :ok
+  def broadcast_new_block(%Block{} = block) do
+    Logger.info "broadcasting new block"
+
+    [block]
+      |> Payload.response_blockchain
+      |> Payload.encode!
+      # |> Server.broadcast
+  end
+
+  @spec broadcast_mining_request(Blockchain.BlockData.t()) :: :ok | {:error, atom()}
+  def broadcast_mining_request(data) do
+    Logger.info "broadcasting mining request"
+
+    data
+      |> Payload.mining_request
+      |> Payload.encode!
+      # |> Server.broadcast
+
+    Mempool.add(data)
+  end
+
+  @spec ask_all_blocks(port()) :: :ok | {:error, atom()}
+  def ask_all_blocks(socket) do
+    Payload.query_all
+      |> Payload.encode!
+      |> Server.send_data(socket)
   end
 end
