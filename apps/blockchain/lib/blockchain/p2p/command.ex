@@ -7,6 +7,7 @@ defmodule Blockchain.P2P.Command do
 
   alias Blockchain.{Chain, Block, Mempool}
   alias Blockchain.P2P.Payload, as: Payload
+  alias Blockchain.P2P.Server, as: Server
 
   @type return :: :ok | {:ok, String.t()} | {:error, atom()}
 
@@ -109,7 +110,7 @@ defmodule Blockchain.P2P.Command do
     [block]
       |> Payload.response_blockchain
       |> Payload.encode!
-      # |> Server.broadcast
+      |> Server.broadcast
   end
 
   @spec broadcast_mining_request(Blockchain.BlockData.t()) :: :ok | {:error, atom()}
@@ -119,7 +120,7 @@ defmodule Blockchain.P2P.Command do
     data
       |> Payload.mining_request
       |> Payload.encode!
-      # |> Server.broadcast
+      |> Server.broadcast
 
     Mempool.add(data)
   end

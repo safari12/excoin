@@ -1,3 +1,5 @@
+require Logger
+
 defmodule Blockchain.P2P.Server do
   @moduledoc """
   TCP server to handle communications between peers
@@ -38,4 +40,59 @@ defmodule Blockchain.P2P.Server do
 
     :gen_tcp.controlling_process(socket, pid)
   end
+
+  @spec serve(port()) :: no_return()
+  defp serve(socket) do
+    case :gen_tcp.recv(socket, 0) do
+      {:ok, data} ->
+        handle_incoming_data(socket, data)
+        serve(socket)
+
+      {:error, _} ->
+        Logger.info "socket died"
+        Peers.remove(socket)
+        exit(:shutdown)
+    end
+  end
+
+    @spec broadcast(String.t(), [port()]) :: :ok
+    def broadcast(_data, peers \\ Peers.get_all())
+    def broadcast(_data, []), do: :ok
+
+    def broadcast(data, [p | peers]) do
+      case send_data(data, p) do
+        {:error, _} ->
+          # client is not reachable, forget it
+          Logger.info "socket not reachable, forgeting it"
+          Peers.remove(p)
+
+        _ ->
+          broadcast(data, peers)
+      end
+    end
+
+    @spec handle_incoming_data(port(), String.t()) :: :ok | {:error, atom()} | no_return()
+    defp handle_incoming_data(socket, data) do
+      case Command.handle(data) do
+        {:ok, response} ->
+          send_data(response, socket)
+
+        :ok ->
+          :ok
+
+        {:error, :unknown_type} ->
+          send_data("unknown type", socket)
+
+        {:error, :invalid} ->
+          send_data("invalid json", socket)
+
+        {:error, reason} ->
+          Logger.info(fn -> reason end)
+      end
+    end
+
+    @spec send_data(iodata(), port()) :: :ok | {:error, atom()}
+    def send_data(data, socket) do
+      :gen_tcp.send(socket, data)
+    end
 end
