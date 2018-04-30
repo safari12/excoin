@@ -54,9 +54,9 @@ defmodule Blockchain.P2P.ServerTest do
       assert send_and_recv(socket, Poison.encode!(%{type: "unknown"})) == "unknown type"
     end
   end
-  
+
   describe "response blockchain command" do
-    test "should query all blocks from peers if receive chain is one block", %{socket: socket} do
+    test "should query all blocks if receive chain is one block", %{socket: socket} do
       remote_chain = mock_blockchain(5)
 
       [block | _] = remote_chain
@@ -67,6 +67,26 @@ defmodule Blockchain.P2P.ServerTest do
 
       {:ok, response} = Payload.decode(send_and_recv(socket, payload))
       assert response == Payload.query_all
+    end
+  end
+
+  describe "peers" do
+    test "should return 3 peers when 2 are connected", %{socket: _socket} do
+      {:ok, _socket1} = open_connection_and_ping()
+      {:ok, _socket2} = open_connection_and_ping()
+      n = length(Peers.get_all)
+      assert n == 3
+    end
+  end
+
+  describe "broadcast" do
+    test "should return test payload", %{socket: socket} do
+      {:ok, socket1} = open_connection_and_ping()
+      n = length(Peers.get_all)
+      assert n == 2
+      payload = "test"
+      assert :ok = Server.broadcast(payload)
+      for s <- [socket, socket1], do: assert(recv(s) == payload)
     end
   end
 end
