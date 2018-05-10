@@ -6,7 +6,8 @@ defmodule Core.Chain do
 
   use GenServer
 
-  alias Core.{Block, BlockData}
+  alias Core.{Block}
+  alias Core.Block.Data, as: BlockData
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
