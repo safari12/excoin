@@ -79,15 +79,15 @@ defmodule Core.Chain do
     [Block.t()]) :: :ok | {:error, atom()}
   defp validate_block(prev_block, block, chain) do
     cond do
-      prev_block.index + 1 != block.index ->
-        {:error, :invalid_block_index}
-      prev_block.hash != block.prev_hash ->
+      prev_block.header.height + 1 != block.header.height ->
+        {:error, :invalid_block_height}
+      prev_block.header.hash != block.header.prev_hash ->
         {:error, :invalid_block_previous_hash}
-      prev_block.timestamp > block.timestamp ->
+      prev_block.header.timestamp > block.header.timestamp ->
         {:error, :invalid_block_timestamp}
       proof_of_work().verify(block) == false ->
         {:error, :proof_of_work_not_verified}
-      block.hash != Block.compute_hash(block) ->
+      block.header.hash != Block.compute_hash(block) ->
         {:error, :invalid_block_hash}
       true ->
         validate_block_data(block, chain)

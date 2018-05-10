@@ -4,6 +4,7 @@ defmodule Core.ChainTest do
   import Core.Fixtures
 
   alias Core.{Chain, Block}
+  alias Core.Block.Header, as: BlockHeader
 
   setup do
     Chain.replace_chain(mock_blockchain(5))
@@ -32,24 +33,29 @@ defmodule Core.ChainTest do
         |> Block.generate_next_block
         |> proof_of_work().compute
 
-      invalid_block = %{valid_block | index: 1000}
-      assert {:error, :invalid_block_index} =
+      invalid_header = %{valid_block.header | height: 1000}
+      invalid_block = %{valid_block | header: invalid_header}
+      assert {:error, :invalid_block_height} =
         Chain.add_block(invalid_block)
 
-      invalid_block = %{valid_block | prev_hash: "not the good previous hash"}
+      invalid_header = %{valid_block.header | prev_hash: "not the good previous hash"}
+      invalid_block = %{valid_block | header: invalid_header}
       assert {:error, :invalid_block_previous_hash} =
         Chain.add_block(invalid_block)
 
-      invalid_block = %{valid_block | hash: "0#{valid_block.hash}"}
+      invalid_header = %{valid_block.header | hash: "0#{valid_block.header.hash}"}
+      invalid_block = %{valid_block | header: invalid_header}
       assert {:error, :invalid_block_hash} =
         Chain.add_block(invalid_block)
 
-      invalid_block = %{valid_block | timestamp: 0}
+      invalid_header = %{valid_block.header | timestamp: 0}
+      invalid_block = %{valid_block | header: invalid_header}
       assert {:error, :invalid_block_timestamp} =
         Chain.add_block(invalid_block)
 
-      invalid_hash = "F#{String.slice(valid_block.hash, 1..-1)}"
-      invalid_block = %{valid_block | hash: invalid_hash}
+      invalid_hash = "F#{String.slice(valid_block.header.hash, 1..-1)}"
+      invalid_header = %{valid_block.header | hash: invalid_hash}
+      invalid_block = %{valid_block | header: invalid_header}
       assert {:error, :proof_of_work_not_verified} =
         Chain.add_block(invalid_block)
     end
@@ -65,9 +71,11 @@ defmodule Core.ChainTest do
   describe "validate_chain" do
     test "should fail if invalid genesis block" do
       invalid_genesis_block = %Block{
-        index: 1,
-        prev_hash: "0",
-        timestamp: 1_465_154_705,
+        header: %BlockHeader{
+          height: 1,
+          prev_hash: "0",
+          timestamp: 1_465_154_705
+        },
         data: "genesis block"
       }
 
@@ -80,9 +88,11 @@ defmodule Core.ChainTest do
       chain = [genesis_block]
 
       invalid_next_block = %Block{
-        index: 1,
-        prev_hash: "wrong",
-        timestamp: 1_465_154_706,
+        header: %BlockHeader{
+          height: 1,
+          prev_hash: "wrong",
+          timestamp: 1_465_154_706
+        },
         data: "first block"
       }
 
