@@ -6,6 +6,9 @@ defmodule Core.Block do
   alias Core.{Block, Chain, Crypto}
   alias Core.Block.{Data, Header}
 
+  @genesis_header Application.get_env(:core, __MODULE__)[:genesis_header]
+  @genesis_data Application.get_env(:core, __MODULE__)[:genesis_data]
+
   @type t :: %__MODULE__{
     header: Header.t(),
     data: Data.t()
@@ -20,17 +23,8 @@ defmodule Core.Block do
   @spec genesis_block() :: t
   def genesis_block do
     %Block{
-      header: %Header{
-        height: 0,
-        prev_hash: "0",
-        merkle_root_hash: "0",
-        timestamp: 1_465_154_705,
-        nonce: 0,
-        hash: "0000DA3553676AC53CC20564D8E956D03A08F7747823439FDE74ABF8E7EADF60",
-        difficulty: 1,
-        version: 1
-      },
-      data: "genesis block"
+      header: struct(Header, @genesis_header),
+      data: @genesis_data
     }
   end
 
