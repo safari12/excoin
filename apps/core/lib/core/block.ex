@@ -27,7 +27,7 @@ defmodule Core.Block do
     }
   end
 
-  @spec generate_next_block(Data.t(), t) :: t
+  @spec generate_next_block(Block.Data.t(), t) :: t
   def generate_next_block(data, block \\ Chain.latest_block())
 
   def generate_next_block(data, %Block{} = latest_block) do
