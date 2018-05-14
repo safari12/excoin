@@ -7,8 +7,10 @@ defmodule Core.Mempool do
 
   use GenServer
 
-  alias Core.{Chain, Block, BlockData}
+  alias Core.{Chain, Block}
   alias Core.P2P.Command, as: Command
+  alias Core.Block.Data, as: BlockData
+  alias Core.Block.Header
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
@@ -42,9 +44,9 @@ defmodule Core.Mempool do
   end
 
   def handle_call(
-    {:block_mined, %Block{index: i} = b},
+    {:block_mined, %Block{header: %Header{height: i}} = b},
     _from,
-    {pool, {_, pid, %Block{index: j}} = mining}
+    {pool, {_, pid, %Block{header: %Header{height: j}}} = mining}
   ) when i == j do
     Process.exit(pid, :kill)
     pool = remove_from_pool(b, pool)
@@ -103,7 +105,7 @@ defmodule Core.Mempool do
 
     case Chain.add_block(mined_block) do
       :ok ->
-        Logger.info "I mined block number #{mined_block.index}"
+        Logger.info "I mined block number #{mined_block.header.height}"
         # TODO: add Command.broadcast_new_block here
         :ok
 

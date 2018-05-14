@@ -9,8 +9,8 @@ defmodule Core.ProofOfWorkTest do
       |> Block.generate_next_block
       |> ProofOfWork.compute
 
-    assert b.nonce != nil
-    assert String.starts_with?(b.hash, "0")
+    assert b.header.nonce != nil
+    assert String.starts_with?(b.header.hash, "0")
     assert ProofOfWork.verify(b)
   end
 

@@ -19,7 +19,7 @@ defmodule Core.ProofOfWork do
   @spec compute(Block.t() | Block.t()) :: Block.t()
   def compute(%Block{} = b) do
     diff = Chain.last_blocks(@window)
-      |> Enum.map(&(&1.timestamp))
+      |> Enum.map(&(&1.header.timestamp))
       |> calculate_difficulty_change(@expected_window_time, @outlier_cutt_off)
       |> Kernel.*(current_difficulty())
 
@@ -27,7 +27,8 @@ defmodule Core.ProofOfWork do
       |> calculate_target()
 
     {hash, nonce} = proof_of_work(b, target, diff)
-    %{b | hash: hash, nonce: nonce, difficulty: diff}
+    h = %{b.header | hash: hash, nonce: nonce, difficulty: diff}
+    %{b | header: h}
   end
 
   # verify that a givens hash satisfy the core
@@ -35,7 +36,7 @@ defmodule Core.ProofOfWork do
 
   @spec verify(Block.t()) :: boolean
   def verify(%Block{} = b) do
-    verify(b.hash, calculate_target(b.difficulty))
+    verify(b.header.hash, calculate_target(b.header.difficulty))
   end
 
   @spec verify(String.t() | String.t(), integer) :: boolean
@@ -46,7 +47,7 @@ defmodule Core.ProofOfWork do
 
   @spec current_difficulty() :: number
   def current_difficulty() do
-    Chain.latest_block().difficulty
+    Chain.latest_block().header.difficulty
   end
 
   @spec calculate_target(number) :: integer
@@ -84,7 +85,8 @@ defmodule Core.ProofOfWork do
 
   @spec proof_of_work(Block.t(), integer, number, integer) :: {String.t(), integer}
   defp proof_of_work(%Block{} = block, target, difficulty, nonce \\ 0) do
-    b = %{block | nonce: nonce, difficulty: difficulty}
+    h = %{block.header | nonce: nonce, difficulty: difficulty}
+    b = %{block | header: h}
     hash = Block.compute_hash(b)
 
     case verify(hash, target) do

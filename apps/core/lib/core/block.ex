@@ -3,69 +3,64 @@ defmodule Core.Block do
   Provides Block struct and related block operations
   """
 
-  alias Core.{Block, Chain, BlockData, Crypto}
+  alias Core.{Block, Chain, Crypto}
+
+  @genesis_header Application.get_env(:core, __MODULE__)[:genesis_header]
+  @genesis_data Application.get_env(:core, __MODULE__)[:genesis_data]
 
   @type t :: %__MODULE__{
-    index: integer,
-    prev_hash: String.t(),
-    timestamp: integer,
-    data: BlockData.t(),
-    nonce: integer | nil,
-    hash: String.t() | nil,
-    difficulty: number
+    header: Block.Header.t(),
+    data: Block.Data.t()
   }
 
   @derive [Poison.Encoder]
   defstruct [
-    :index,
-    :prev_hash,
-    :timestamp,
-    :data,
-    :nonce,
-    :hash,
-    :difficulty
+    :header,
+    :data
   ]
 
   @spec genesis_block() :: t
   def genesis_block do
     %Block{
-      index: 0,
-      prev_hash: "0",
-      timestamp: 1_465_154_705,
-      data: "genesis block",
-      nonce: 35_679,
-      hash: "0000DA3553676AC53CC20564D8E956D03A08F7747823439FDE74ABF8E7EADF60",
-      difficulty: 1
+      header: struct(Block.Header, @genesis_header),
+      data: @genesis_data
     }
   end
 
-  @spec generate_next_block(BlockData.t(), t) :: t
+  @spec generate_next_block(Block.Data.t(), t) :: t
   def generate_next_block(data, block \\ Chain.latest_block())
 
   def generate_next_block(data, %Block{} = latest_block) do
     b = %Block{
-      index: latest_block.index + 1,
-      prev_hash: latest_block.hash,
-      timestamp: System.system_time(:second),
+      header: %Block.Header{
+        height: latest_block.header.height + 1,
+        prev_hash: latest_block.header.hash,
+        timestamp: System.system_time(:second)
+      },
       data: data
     }
 
     hash = compute_hash(b)
-    %{b | hash: hash}
+    %{b | header: %{b.header | hash: hash}}
   end
 
   @spec compute_hash(t) :: String.t()
   def compute_hash(%Block{
-      index: i,
-      prev_hash: h,
-      timestamp: ts,
-      data: data,
-      nonce: n,
-      difficulty: d
+      header: %Block.Header{
+        height: hgt,
+        prev_hash: ph,
+        merkle_root_hash: mrh,
+        timestamp: ts,
+        nonce: n,
+        difficulty: d,
+        version: v,
+        target: t
+      },
+      data: data
   }) do
-    "#{i}#{h}#{ts}#{BlockData.hash(data)}#{d}#{n}"
-    |> Crypto.hash(:sha256)
-    |> Base.encode16()
+    "#{hgt}#{ph}#{mrh}#{ts}#{n}#{d}#{v}#{t}#{Block.Data.hash(data)}"
+      |> Crypto.hash(:sha256)
+      |> Base.encode16()
   end
 
 end
