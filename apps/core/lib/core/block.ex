@@ -4,14 +4,13 @@ defmodule Core.Block do
   """
 
   alias Core.{Block, Chain, Crypto}
-  alias Core.Block.{Data, Header}
 
   @genesis_header Application.get_env(:core, __MODULE__)[:genesis_header]
   @genesis_data Application.get_env(:core, __MODULE__)[:genesis_data]
 
   @type t :: %__MODULE__{
-    header: Header.t(),
-    data: Data.t()
+    header: Block.Header.t(),
+    data: Block.Data.t()
   }
 
   @derive [Poison.Encoder]
@@ -23,7 +22,7 @@ defmodule Core.Block do
   @spec genesis_block() :: t
   def genesis_block do
     %Block{
-      header: struct(Header, @genesis_header),
+      header: struct(Block.Header, @genesis_header),
       data: @genesis_data
     }
   end
@@ -33,7 +32,7 @@ defmodule Core.Block do
 
   def generate_next_block(data, %Block{} = latest_block) do
     b = %Block{
-      header: %Header{
+      header: %Block.Header{
         height: latest_block.header.height + 1,
         prev_hash: latest_block.header.hash,
         timestamp: System.system_time(:second)
@@ -47,7 +46,7 @@ defmodule Core.Block do
 
   @spec compute_hash(t) :: String.t()
   def compute_hash(%Block{
-      header: %Header{
+      header: %Block.Header{
         height: hgt,
         prev_hash: ph,
         merkle_root_hash: mrh,
@@ -59,7 +58,7 @@ defmodule Core.Block do
       },
       data: data
   }) do
-    "#{hgt}#{ph}#{mrh}#{ts}#{n}#{d}#{v}#{t}#{data}"
+    "#{hgt}#{ph}#{mrh}#{ts}#{n}#{d}#{v}#{t}#{Block.Data.hash(data)}"
       |> Crypto.hash(:sha256)
       |> Base.encode16()
   end
