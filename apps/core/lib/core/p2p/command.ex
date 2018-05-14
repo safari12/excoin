@@ -51,11 +51,11 @@ defmodule Core.P2P.Command do
     [latest_block_received | _] = received_chain
 
     cond do
-      latest_block_held.index >= latest_block_received.index ->
+      latest_block_held.header.height >= latest_block_received.header.height ->
         Logger.info "received core is no longer, ignoring chain"
         :ok
 
-      latest_block_held.hash == latest_block_received.prev_hash ->
+      latest_block_held.header.hash == latest_block_received.header.prev_hash ->
         Logger.info "adding new block"
         add_block(latest_block_received)
         :ok

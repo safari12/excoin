@@ -105,7 +105,7 @@ defmodule Core.Mempool do
 
     case Chain.add_block(mined_block) do
       :ok ->
-        Logger.info "I mined block number #{mined_block.index}"
+        Logger.info "I mined block number #{mined_block.header.height}"
         # TODO: add Command.broadcast_new_block here
         :ok
 

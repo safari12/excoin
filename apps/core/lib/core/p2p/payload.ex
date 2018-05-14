@@ -23,7 +23,7 @@ defmodule Core.P2P.Payload do
   @type t :: %Payload{
     type: String.t(),
     blocks: [Block.t()] | nil,
-    data: Core.BlockData.t() | nil
+    data: Core.Block.Data.t() | nil
   }
 
   @derive [Poison.Encoder]
@@ -45,7 +45,7 @@ defmodule Core.P2P.Payload do
   @spec response_blockchain([%Block{}]) :: t
   def response_blockchain(chain), do: %Payload{type: @response_blockchain, blocks: chain}
 
-  @spec mining_request(Core.BlockData.t()) :: t
+  @spec mining_request(Core.Block.Data.t()) :: t
   def mining_request(data), do: %Payload{type: @mining_request, data: data}
 
   defmodule TypedData do
@@ -61,7 +61,7 @@ defmodule Core.P2P.Payload do
 
   @spec decode(String.t()) :: {:ok, t} | {:error, atom()}
   def decode(input) do
-    pattern = %Payload{blocks: [%Block{data: %TypedData{}}], data: %TypedData{}}
+    pattern = %Payload{blocks: [%Block{data: %TypedData{}, header: %Block.Header{}}], data: %TypedData{}}
 
     case Poison.decode(input, as: pattern) do
       {:ok, _} = result ->

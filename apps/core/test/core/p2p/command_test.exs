@@ -60,7 +60,7 @@ defmodule Core.P2P.CommandTest do
       assert call(Payload.response_blockchain([block])) == :ok
       assert Chain.all_blocks() == remote_chain
     end
-
+  
     test "should ignore smaller chain" do
       remote_chain = mock_blockchain(5)
 
